@@ -7,7 +7,11 @@ from django.http import FileResponse, StreamingHttpResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from .models import Song, Playlist
 from .serializers import SongSerializer, PlaylistSerializer
+from django.conf import settings
+import boto3
 import os
+
+USE_S3 = os.getenv('USE_S3', 'False') == 'True'
 
 def file_iterator(file_path, chunk_size=8192):
          try:
@@ -41,50 +45,107 @@ class SongDetailView(APIView):
         
 class SongStreamView(APIView):
     permission_classes = [IsAuthenticated]
-
     def get(self, request, pk):
         song = get_object_or_404(Song, pk=pk)
         if song.is_premium and not request.user.is_premium:
             return Response({"detail": "Premium content"}, status=status.HTTP_403_FORBIDDEN)
 
-        file_path = song.file_path.path
-        if not os.path.exists(file_path):
-            return Response({"detail": "File not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        try:
-            return FileResponse(
-                open(file_path, 'rb'),
-                content_type='audio/mpeg',
-                as_attachment=False,
-                filename=f"{song.title}.mp3"
+        if settings.USE_S3:
+            s3_client = boto3.client(
+                's3',
+                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                region_name=settings.AWS_S3_REGION_NAME
             )
-        except Exception as e:
-            print(f"Streaming error: {e}")
-            return Response({"detail": "Error while streaming file"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            try:
+                response = s3_client.get_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=song.file_path.name)
+                file_stream = response['Body']
+                return FileResponse(
+                    file_stream,
+                    content_type='audio/mpeg',
+                    as_attachment=False,
+                    filename=f"{song.title}.mp3"
+                )
+            except s3_client.exceptions.NoSuchKey:
+                return Response({"detail": "File not found"}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
+                print(f"S3 streaming error: {e}")
+                return Response({"detail": "Error while streaming file"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            file_path = song.file_path.path
+            if not os.path.exists(file_path):
+                return Response({"detail": "File not found"}, status=status.HTTP_404_NOT_FOUND)
+            try:
+                return FileResponse(
+                    open(file_path, 'rb'),
+                    content_type='audio/mpeg',
+                    as_attachment=False,
+                    filename=f"{song.title}.mp3"
+                )
+            except FileNotFoundError:
+                return Response({"detail": "File not found"}, status=status.HTTP_404_NOT_FOUND)
+            except PermissionError:
+                return Response({"detail": "Permission denied for file"}, status=status.HTTP_403_FORBIDDEN)
+            except Exception as e:
+                print(f"Streaming error: {e}")
+                return Response({"detail": "Error while streaming file"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class SongDownloadView(APIView):
     permission_classes = [IsAuthenticated]
-
     def get(self, request, pk):
         song = get_object_or_404(Song, pk=pk)
         if song.is_premium and not request.user.is_premium:
             return Response({"detail": "Premium content"}, status=status.HTTP_403_FORBIDDEN)
 
-        file_path = song.file_path.path
-        if not os.path.exists(file_path):
-            return Response({"detail": "File not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        try:
-            return FileResponse(
-                open(file_path, 'rb'),
-                content_type='application/octet-stream',
-                as_attachment=True,
-                filename=f"{song.title}.mp3"
+        if settings.USE_S3:
+            s3_client = boto3.client(
+                's3',
+                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                region_name=settings.AWS_S3_REGION_NAME
             )
-        except Exception as e:
-            print(f"Download error: {e}")
-            return Response({"detail": "Error while downloading file"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            try:
+                response = s3_client.get_object(Bucket=settings.AWS_STORAGE_BUCKET_NAME, Key=song.file_path.name)
+                file_stream = response['Body']
+                return FileResponse(
+                    file_stream,
+                    content_type='application/octet-stream',
+                    as_attachment=True,
+                    filename=f"{song.title}.mp3"
+                )
+            except s3_client.exceptions.NoSuchKey:
+                return Response({"detail": "File not found"}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
+                print(f"S3 download error: {e}")
+                return Response({"detail": "Error while downloading file"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            file_path = song.file_path.path
+            if not os.path.exists(file_path):
+                return Response({"detail": "File not found"}, status=status.HTTP_404_NOT_FOUND)
+            try:
+                return FileResponse(
+                    open(file_path, 'rb'),
+                    content_type='application/octet-stream',
+                    as_attachment=True,
+                    filename=f"{song.title}.mp3"
+                )
+            except FileNotFoundError:
+                return Response({"detail": "File not found"}, status=status.HTTP_404_NOT_FOUND)
+            except PermissionError:
+                return Response({"detail": "Permission denied for file"}, status=status.HTTP_403_FORBIDDEN)
+            except Exception as e:
+                print(f"Download error: {e}")
+                return Response({"detail": "Error while downloading file"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class SongFavoriteView(APIView):
+    permission_classes = [IsAuthenticated]
+    def post(self, request, pk):
+        song = get_object_or_404(Song, pk=pk)
+        if song in request.user.favorite_songs.all():
+            request.user.favorite_songs.remove(song)
+            return Response({"detail": "Song removed from favorites"})
+        request.user.favorite_songs.add(song)
+        return Response({"detail": "Song added to favorites"})
         
 class PlaylistListView(APIView):
     permission_classes = [IsAuthenticated]

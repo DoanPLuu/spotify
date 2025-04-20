@@ -35,6 +35,7 @@ class Song(models.Model):
     file_path = models.FileField(upload_to='songs/')
     is_premium = models.BooleanField(default=False)
     cover_image = models.CharField(max_length=255, blank=True, null=True)
+    favorited_by = models.ManyToManyField(User, related_name='favorite_songs', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

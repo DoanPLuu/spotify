@@ -18,10 +18,17 @@ class AlbumSerializer(serializers.ModelSerializer):
 class SongSerializer(serializers.ModelSerializer):
     artist = ArtistSerializer(read_only=True)
     album = AlbumSerializer(read_only=True)
-
+    is_favorited = serializers.SerializerMethodField()
+    
     class Meta:
         model = Song
-        fields = ['id', 'title', 'artist', 'album', 'duration', 'file_path', 'cover_image', 'is_premium', 'created_at']
+        fields = ['id', 'title', 'artist', 'album', 'duration', 'file_path', 'cover_image', 'is_premium', 'created_at', 'is_favorited',]
+
+    def get_is_favorited(self, obj):
+        user = self.context['request'].user
+        if user.is_authenticated:
+            return obj.favorited_by.filter(id=user.id).exists()
+        return False
 
 class PlaylistSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)

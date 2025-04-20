@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from django.contrib.auth import get_user_model
+from django.db import connection
 from music.models import Artist, Album, Song, Playlist
 from django.core.files import File
 from datetime import date
@@ -7,6 +8,16 @@ import random
 import os
 
 User = get_user_model()
+
+
+def reset_auto_increment(model):
+    """
+    Hàm này sẽ reset AUTO_INCREMENT cho bảng của model được truyền vào (PostgreSQL).
+    """
+    with connection.cursor() as cursor:
+        table_name = model._meta.db_table
+        sequence_name = f"{table_name}_id_seq"  # Default sequence name in Django for primary key
+        cursor.execute(f"ALTER SEQUENCE {sequence_name} RESTART WITH 1")
 
 class Command(BaseCommand):
     help = 'Seed the database with sample data for testing'
@@ -20,6 +31,12 @@ class Command(BaseCommand):
         Album.objects.all().delete()
         Artist.objects.all().delete()
         User.objects.exclude(is_superuser=True).delete()
+
+         # Reset AUTO_INCREMENT cho các bảng sau khi xóa dữ liệu
+        reset_auto_increment(Song)
+        reset_auto_increment(Album)
+        reset_auto_increment(Artist)
+        reset_auto_increment(User)
 
         # Create users
         users = [
