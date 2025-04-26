@@ -152,7 +152,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 USE_S3 = False
 
-
 # Simple JWT settings
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=50),  # Access token hết hạn sau 5 phút
