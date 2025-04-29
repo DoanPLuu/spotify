@@ -45,15 +45,24 @@ class SongStreamView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, pk):
-        song = get_object_or_404(Song, pk=pk)
+        try:
+            song = Song.objects.get(pk=pk)
+        except Song.DoesNotExist:
+            print(f"Song with ID={pk} not found")
+            return Response({"detail": "Song not found"}, status=status.HTTP_404_NOT_FOUND)
+
         if song.is_premium and not request.user.is_premium:
+            print(f"User {request.user.username} not premium, song ID={pk} is premium")
             return Response({"detail": "Premium content"}, status=status.HTTP_403_FORBIDDEN)
 
         file_path = song.file_path.path
+        print(f"Checking file: {file_path}")
         if not os.path.exists(file_path):
+            print(f"File not found at: {file_path}")
             return Response({"detail": "File not found"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
+            print(f"Streaming file: {file_path}")
             return FileResponse(
                 open(file_path, 'rb'),
                 content_type='audio/mpeg',
