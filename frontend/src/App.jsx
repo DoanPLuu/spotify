@@ -17,6 +17,12 @@ import CreateAlbumPage from "./pages/CreateAlbumPage";
 import AlbumList from "./components/content/AlbumList";
 import FavoriteSongs from "./components/content/FavoriteSongs";
 import { isAuthenticated } from "./services/api";
+import AdminLoginPage from "./pages/admin/AdminLoginPage";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminArtists from "./pages/admin/AdminArtists";
+import AdminAlbums from "./pages/admin/AdminAlbums";
+import AdminSongs from "./pages/admin/AdminSongs";
+import { API_BASE_URL } from "./config/constants";
 
 // Component để xử lý redirect
 const RedirectToLogin = () => {
@@ -103,9 +109,59 @@ const App = () => {
         <Route path="/signup" element={<SignupPage />} />
         {/* Trang test */}
         <Route path="/test" element={<TestPage />} />
+
+        {/* Add Admin Routes */}
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="artists" element={<AdminArtists />} />
+          <Route path="albums" element={<AdminAlbums />} />
+          <Route path="songs" element={<AdminSongs />} />
+        </Route>
       </Routes>
     </Router>
   );
+};
+
+// Add this new layout component for admin pages
+const AdminLayout = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAdminAuth = async () => {
+      const adminToken = localStorage.getItem('adminToken');
+      if (!adminToken) {
+        navigate('/admin/login');
+        return;
+      }
+
+      try {
+        // Sửa lại URL verify token, thêm /api prefix
+        const response = await fetch(`${API_BASE_URL}/api/token/verify/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ token: adminToken }),
+        });
+
+        if (!response.ok) {
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminRefreshToken');
+          navigate('/admin/login');
+        }
+      } catch (error) {
+        console.error('Token verification failed:', error);
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminRefreshToken');
+        navigate('/admin/login');
+      }
+    };
+
+    checkAdminAuth();
+  }, [navigate]);
+
+  return <Outlet />;
 };
 
 export default App;

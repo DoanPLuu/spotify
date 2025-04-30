@@ -34,11 +34,11 @@ urlpatterns = [
     path('favorites/toggle/', FavoriteSongToggleView.as_view(), name='favorite-toggle'),
     path('favorites/check/<int:pk>/', CheckFavoriteSongView.as_view(), name='favorite-check'),
 
-    # Admin endpoints
-    path('admin/artists/', AdminArtistListView.as_view(), name='admin_artist_list'),
-    path('admin/artists/<int:pk>/', AdminArtistDetailView.as_view(), name='admin_artist_detail'),
-    path('admin/albums/', AdminAlbumListView.as_view(), name='admin_album_list'),
-    path('admin/albums/<int:pk>/', AdminAlbumDetailView.as_view(), name='admin_album_detail'),
-    path('admin/songs/', AdminSongListView.as_view(), name='admin_song_list'),
-    path('admin/songs/<int:pk>/', AdminSongDetailView.as_view(), name='admin_song_detail'),
+    # Admin routes
+    path('admin/songs/', AdminSongListView.as_view(), name='admin-songs'),
+    path('admin/songs/<int:pk>/', AdminSongDetailView.as_view(), name='admin-song-detail'),
+    path('admin/artists/', AdminArtistListView.as_view(), name='admin-artists'),
+    path('admin/artists/<int:pk>/', AdminArtistDetailView.as_view(), name='admin-artist-detail'),
+    path('admin/albums/', AdminAlbumListView.as_view(), name='admin-albums'),
+    path('admin/albums/<int:pk>/', AdminAlbumDetailView.as_view(), name='admin-album-detail'),
 ]
