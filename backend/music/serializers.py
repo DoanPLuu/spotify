@@ -7,6 +7,7 @@ class ArtistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Artist
         fields = ['id', 'name', 'bio', 'cover_image', 'created_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
 
 class AlbumSerializer(serializers.ModelSerializer):
     artist = ArtistSerializer(read_only=True)
@@ -17,6 +18,7 @@ class AlbumSerializer(serializers.ModelSerializer):
     class Meta:
         model = Album
         fields = ['id', 'title', 'artist', 'artist_id', 'user_id', 'cover_image', 'release_date', 'created_at', 'is_public', 'is_owner']
+        
 
     def get_is_owner(self, obj):
         request = self.context.get('request')
@@ -48,10 +50,9 @@ class AlbumSerializer(serializers.ModelSerializer):
 class SongSerializer(serializers.ModelSerializer):
     artist = ArtistSerializer(read_only=True)
     album = AlbumSerializer(read_only=True)
-
     class Meta:
         model = Song
-        fields = ['id', 'title', 'artist', 'album', 'duration', 'file_path', 'cover_image', 'is_premium', 'created_at']
+        fields = ['id', 'title', 'artist', 'album', 'duration', 'file_path', 'video_file', 'cover_image', 'is_premium', 'created_at']
 
 class AlbumDetailSerializer(serializers.ModelSerializer):
     artist = ArtistSerializer(read_only=True)

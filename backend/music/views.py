@@ -10,6 +10,8 @@ from django.db.models import Q
 from .models import Song, Playlist, Album, Artist
 from .serializers import SongSerializer, PlaylistSerializer, AlbumSerializer, AlbumDetailSerializer, ArtistSerializer
 import os
+import boto3
+from django.conf import settings
 
 def file_iterator(file_path, chunk_size=8192):
          try:
@@ -72,6 +74,34 @@ class SongStreamView(APIView):
         except Exception as e:
             print(f"Streaming error: {e}")
             return Response({"detail": "Error while streaming file"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SongVideoStreamView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            song = Song.objects.get(pk=pk)
+        except Song.DoesNotExist:
+            return Response({"detail": "Song not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if song.is_premium and not request.user.is_premium:
+            return Response({"detail": "Premium content"}, status=status.HTTP_403_FORBIDDEN)
+
+        if not song.video_file:
+            return Response({"detail": "No video available"}, status=status.HTTP_404_NOT_FOUND)
+
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+            aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            region_name=settings.AWS_S3_REGION_NAME
+        )
+        presigned_url = s3_client.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': settings.AWS_STORAGE_BUCKET_NAME, 'Key': song.video_file.name},
+            ExpiresIn=3600
+        )
+        return Response({'stream_url': presigned_url}, status=status.HTTP_200_OK)
 
 class SongDownloadView(APIView):
     permission_classes = [IsAuthenticated]

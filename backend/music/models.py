@@ -38,6 +38,7 @@ class Song(models.Model):
     is_premium = models.BooleanField(default=False)
     cover_image = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    video_file = models.FileField(upload_to='videos/', blank=True,  null=True)
 
     class Meta:
         db_table = 'songs'

@@ -1,10 +1,12 @@
 # music/urls.py
 from django.urls import path
+
+from music.admin_views import AdminAlbumDetailView, AdminAlbumListView, AdminArtistDetailView, AdminArtistListView, AdminSongDetailView, AdminSongListView
 from .views import (
     SongListView, SongDetailView, SongStreamView, SongDownloadView,
     PlaylistListView, PlaylistDetailView, PlaylistAddSongView, PlaylistRemoveSongView,
     AlbumListView, AlbumDetailView, AlbumAddSongView, AlbumRemoveSongView,
-    FavoriteSongListView, FavoriteSongToggleView, CheckFavoriteSongView
+    FavoriteSongListView, FavoriteSongToggleView, CheckFavoriteSongView, SongVideoStreamView
 )
 
 urlpatterns = [
@@ -13,6 +15,7 @@ urlpatterns = [
     path('songs/<int:pk>/', SongDetailView.as_view(), name='song-detail'),
     path('songs/<int:pk>/stream/', SongStreamView.as_view(), name='song-stream'),
     path('songs/<int:pk>/download/', SongDownloadView.as_view(), name='song-download'),
+    path('songs/<int:pk>/video-stream/', SongVideoStreamView.as_view(), name='song-video-stream'),
 
     # Playlist endpoints
     path('playlists/', PlaylistListView.as_view(), name='playlist-list'),
@@ -30,4 +33,12 @@ urlpatterns = [
     path('favorites/', FavoriteSongListView.as_view(), name='favorite-list'),
     path('favorites/toggle/', FavoriteSongToggleView.as_view(), name='favorite-toggle'),
     path('favorites/check/<int:pk>/', CheckFavoriteSongView.as_view(), name='favorite-check'),
+
+    # Admin endpoints
+    path('admin/artists/', AdminArtistListView.as_view(), name='admin_artist_list'),
+    path('admin/artists/<int:pk>/', AdminArtistDetailView.as_view(), name='admin_artist_detail'),
+    path('admin/albums/', AdminAlbumListView.as_view(), name='admin_album_list'),
+    path('admin/albums/<int:pk>/', AdminAlbumDetailView.as_view(), name='admin_album_detail'),
+    path('admin/songs/', AdminSongListView.as_view(), name='admin_song_list'),
+    path('admin/songs/<int:pk>/', AdminSongDetailView.as_view(), name='admin_song_detail'),
 ]
