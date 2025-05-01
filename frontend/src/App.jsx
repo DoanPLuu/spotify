@@ -23,6 +23,7 @@ import AdminArtists from "./pages/admin/AdminArtists";
 import AdminAlbums from "./pages/admin/AdminAlbums";
 import AdminSongs from "./pages/admin/AdminSongs";
 import { API_BASE_URL } from "./config/constants";
+import AdminLayout from './components/layout/AdminLayout';
 
 // Component để xử lý redirect
 const RedirectToLogin = () => {
@@ -86,45 +87,8 @@ const FavoritesPage = () => {
   return <FavoriteSongs />;
 };
 
-const App = () => {
-  return (
-    <Router>
-      <Routes>
-        {/* Trang chính (home), chỉ hiển thị nếu đã đăng nhập */}
-        <Route path="/" element={<RedirectToLogin />} />
-
-        {/* Layout chung cho các trang đã đăng nhập */}
-        <Route path="/" element={<AppLayout />}>
-          <Route path="home" element={<HomePage />} />
-          <Route path="albums" element={<AlbumsPage />} />
-          <Route path="albums/create" element={<CreateAlbumPage />} />
-          <Route path="albums/:id" element={<AlbumDetailPage />} />
-          {/* <Route path="albums/:id/edit" element={<EditAlbumPage />} /> */}
-          <Route path="favorites" element={<FavoritesPage />} />
-        </Route>
-
-        {/* Trang đăng nhập */}
-        <Route path="/login" element={<LoginPage />} />
-        {/* Trang đăng ký */}
-        <Route path="/signup" element={<SignupPage />} />
-        {/* Trang test */}
-        <Route path="/test" element={<TestPage />} />
-
-        {/* Add Admin Routes */}
-        <Route path="/admin/login" element={<AdminLoginPage />} />
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route path="dashboard" element={<AdminDashboard />} />
-          <Route path="artists" element={<AdminArtists />} />
-          <Route path="albums" element={<AdminAlbums />} />
-          <Route path="songs" element={<AdminSongs />} />
-        </Route>
-      </Routes>
-    </Router>
-  );
-};
-
-// Add this new layout component for admin pages
-const AdminLayout = () => {
+// Component kiểm tra xác thực cho trang admin
+const AdminAuthWrapper = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -162,6 +126,45 @@ const AdminLayout = () => {
   }, [navigate]);
 
   return <Outlet />;
+};
+
+const App = () => {
+  return (
+    <Router>
+      <Routes>
+        {/* Trang chính (home), chỉ hiển thị nếu đã đăng nhập */}
+        <Route path="/" element={<RedirectToLogin />} />
+
+        {/* Layout chung cho các trang đã đăng nhập */}
+        <Route path="/" element={<AppLayout />}>
+          <Route path="home" element={<HomePage />} />
+          <Route path="albums" element={<AlbumsPage />} />
+          <Route path="albums/create" element={<CreateAlbumPage />} />
+          <Route path="albums/:id" element={<AlbumDetailPage />} />
+          {/* <Route path="albums/:id/edit" element={<EditAlbumPage />} /> */}
+          <Route path="favorites" element={<FavoritesPage />} />
+        </Route>
+
+        {/* Trang đăng nhập */}
+        <Route path="/login" element={<LoginPage />} />
+        {/* Trang đăng ký */}
+        <Route path="/signup" element={<SignupPage />} />
+        {/* Trang test */}
+        <Route path="/test" element={<TestPage />} />
+
+        {/* Add Admin Routes */}
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route path="/admin" element={<AdminAuthWrapper />}>
+          <Route element={<AdminLayout />}>
+            <Route path="dashboard" element={<AdminDashboard />} />
+            <Route path="artists" element={<AdminArtists />} />
+            <Route path="albums" element={<AdminAlbums />} />
+            <Route path="songs" element={<AdminSongs />} />
+          </Route>
+        </Route>
+      </Routes>
+    </Router>
+  );
 };
 
 export default App;

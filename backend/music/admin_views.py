@@ -45,6 +45,9 @@ class AdminArtistDetailView(APIView):
 
     def delete(self, request, pk):
         artist = get_object_or_404(Artist, pk=pk)
+        # Xóa ảnh từ S3 nếu có
+        if artist.image:
+            artist.image.delete(save=False)
         artist.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -82,6 +85,10 @@ class AdminAlbumDetailView(APIView):
 
     def delete(self, request, pk):
         album = get_object_or_404(Album, pk=pk)
+        # Xóa ảnh bìa từ S3 nếu có
+        if album.cover_image:
+            album.cover_image.delete(save=False)
+        # Cập nhật các bài hát thuộc album này
         Song.objects.filter(album=album).update(album=None)
         album.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -120,5 +127,11 @@ class AdminSongDetailView(APIView):
 
     def delete(self, request, pk):
         song = get_object_or_404(Song, pk=pk)
+        # Xóa file âm thanh từ S3 nếu có
+        if song.file_path:
+            song.file_path.delete(save=False)
+        # Xóa file video từ S3 nếu có
+        if song.video_file:
+            song.video_file.delete(save=False)
         song.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

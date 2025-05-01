@@ -2,57 +2,66 @@
 from rest_framework import serializers
 from .models import Song, Artist, Album, Playlist
 from accounts.serializers import UserSerializer
+from rest_framework import serializers
 
 class ArtistSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    
     class Meta:
         model = Artist
-        fields = ['id', 'name', 'bio', 'cover_image', 'created_at']
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        fields = ['id', 'name', 'bio', 'image', 'image_url']
+        extra_kwargs = {
+            'image': {'write_only': True}
+        }
+    
+    def get_image_url(self, obj):
+        if obj.image:
+            return obj.image.url
+        return None
 
 class AlbumSerializer(serializers.ModelSerializer):
-    artist = ArtistSerializer(read_only=True)
-    user_id = serializers.IntegerField(write_only=True, required=False)
-    artist_id = serializers.IntegerField(write_only=True, required=False)
-    is_owner = serializers.SerializerMethodField()
-
+    artist_name = serializers.ReadOnlyField(source='artist.name')
+    cover_image_url = serializers.SerializerMethodField()
+    
     class Meta:
         model = Album
-        fields = ['id', 'title', 'artist', 'artist_id', 'user_id', 'cover_image', 'release_date', 'created_at', 'is_public', 'is_owner']
-        
-
-    def get_is_owner(self, obj):
-        request = self.context.get('request')
-        if request and hasattr(request, 'user'):
-            return obj.user == request.user
-        return False
-
-    def create(self, validated_data):
-        artist_id = validated_data.pop('artist_id', None)
-        user_id = validated_data.pop('user_id', None)
-
-        # Lấy artist từ artist_id
-        artist = None
-        if artist_id:
-            try:
-                artist = Artist.objects.get(pk=artist_id)
-            except Artist.DoesNotExist:
-                raise serializers.ValidationError({"artist_id": "Artist không tồn tại"})
-
-        # Tạo album mới
-        album = Album.objects.create(
-            artist=artist,
-            user_id=user_id,
-            **validated_data
-        )
-
-        return album
+        fields = ['id', 'title', 'artist', 'artist_name', 'release_date', 'cover_image', 'cover_image_url']
+        extra_kwargs = {
+            'cover_image': {'write_only': True}
+        }
+    
+    def get_cover_image_url(self, obj):
+        if obj.cover_image:
+            return obj.cover_image.url
+        return None
 
 class SongSerializer(serializers.ModelSerializer):
-    artist = ArtistSerializer(read_only=True)
-    album = AlbumSerializer(read_only=True)
+    artist_name = serializers.ReadOnlyField(source='artist.name')
+    album_title = serializers.ReadOnlyField(source='album.title')
+    audio_url = serializers.SerializerMethodField()
+    cover_image_url = serializers.SerializerMethodField()
+    
     class Meta:
         model = Song
-        fields = ['id', 'title', 'artist', 'album', 'duration', 'file_path', 'video_file', 'cover_image', 'is_premium', 'created_at']
+        fields = ['id', 'title', 'artist', 'artist_name', 'album', 'album_title', 
+                 'duration', 'file_path', 'audio_url', 'cover_image', 'cover_image_url',
+                 'is_premium', 'created_at']
+        extra_kwargs = {
+            'file_path': {'write_only': True},
+            'cover_image': {'write_only': True}
+        }
+    
+    def get_audio_url(self, obj):
+        if obj.file_path:
+            return obj.file_path.url
+        return None
+        
+    def get_cover_image_url(self, obj):
+        if obj.cover_image:
+            return obj.cover_image.url
+        elif obj.album and obj.album.cover_image:
+            return obj.album.cover_image.url
+        return None
 
 class AlbumDetailSerializer(serializers.ModelSerializer):
     artist = ArtistSerializer(read_only=True)

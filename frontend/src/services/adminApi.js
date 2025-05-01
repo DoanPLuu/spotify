@@ -30,7 +30,7 @@ adminApi.interceptors.response.use(
         // Thử refresh token
         const refreshToken = localStorage.getItem('adminRefreshToken');
         if (refreshToken) {
-          const response = await axios.post(`${API_BASE_URL}/token/refresh/`, {
+          const response = await axios.post(`${API_BASE_URL}/api/token/refresh/`, {
             refresh: refreshToken
           });
           
@@ -53,10 +53,24 @@ adminApi.interceptors.response.use(
   }
 );
 
+// Admin Login
+export const adminLogin = async (username, password) => {
+  try {
+    const response = await axios.post(`${API_BASE_URL}/api/accounts/admin/login/`, {
+      username,
+      password
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error during admin login:', error);
+    throw error;
+  }
+};
+
 // Artists
 export const getAdminArtists = async () => {
   try {
-    const response = await adminApi.get('/api/admin/artists/');  // Add /api prefix
+    const response = await adminApi.get('/api/admin/artists/');
     return response.data;
   } catch (error) {
     console.error('Error fetching artists:', error);
@@ -66,7 +80,7 @@ export const getAdminArtists = async () => {
 
 export const createArtist = async (formData) => {
   try {
-    const response = await adminApi.post('/admin/artists/', formData, {
+    const response = await adminApi.post('/api/admin/artists/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -80,7 +94,7 @@ export const createArtist = async (formData) => {
 
 export const updateArtist = async (id, formData) => {
   try {
-    const response = await adminApi.put(`/admin/artists/${id}/`, formData, {
+    const response = await adminApi.put(`/api/admin/artists/${id}/`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -94,7 +108,7 @@ export const updateArtist = async (id, formData) => {
 
 export const deleteArtist = async (id) => {
   try {
-    await adminApi.delete(`/admin/artists/${id}/`);
+    await adminApi.delete(`/api/admin/artists/${id}/`);
   } catch (error) {
     console.error('Error deleting artist:', error);
     throw error;
@@ -104,7 +118,7 @@ export const deleteArtist = async (id) => {
 // Albums
 export const getAdminAlbums = async () => {
   try {
-    const response = await adminApi.get('/api/admin/albums/');  // Add /api prefix
+    const response = await adminApi.get('/api/admin/albums/');
     return response.data;
   } catch (error) {
     console.error('Error fetching albums:', error);
@@ -114,7 +128,7 @@ export const getAdminAlbums = async () => {
 
 export const createAlbum = async (formData) => {
   try {
-    const response = await adminApi.post('/admin/albums/', formData, {
+    const response = await adminApi.post('/api/admin/albums/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -128,7 +142,7 @@ export const createAlbum = async (formData) => {
 
 export const updateAlbum = async (id, formData) => {
   try {
-    const response = await adminApi.put(`/admin/albums/${id}/`, formData, {
+    const response = await adminApi.put(`/api/admin/albums/${id}/`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -142,7 +156,7 @@ export const updateAlbum = async (id, formData) => {
 
 export const deleteAlbum = async (id) => {
   try {
-    await adminApi.delete(`/admin/albums/${id}/`);
+    await adminApi.delete(`/api/admin/albums/${id}/`);
   } catch (error) {
     console.error('Error deleting album:', error);
     throw error;
@@ -152,7 +166,7 @@ export const deleteAlbum = async (id) => {
 // Songs
 export const getAdminSongs = async () => {
   try {
-    const response = await adminApi.get('/api/admin/songs/');  // Add /api prefix
+    const response = await adminApi.get('/api/admin/songs/');
     return response.data;
   } catch (error) {
     console.error('Error fetching songs:', error);
@@ -162,7 +176,7 @@ export const getAdminSongs = async () => {
 
 export const createSong = async (formData) => {
   try {
-    const response = await adminApi.post('/admin/songs/', formData, {
+    const response = await adminApi.post('/api/admin/songs/', formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -176,7 +190,7 @@ export const createSong = async (formData) => {
 
 export const updateSong = async (id, formData) => {
   try {
-    const response = await adminApi.put(`/admin/songs/${id}/`, formData, {
+    const response = await adminApi.put(`/api/admin/songs/${id}/`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data'
       }
@@ -190,7 +204,7 @@ export const updateSong = async (id, formData) => {
 
 export const deleteSong = async (id) => {
   try {
-    await adminApi.delete(`/admin/songs/${id}/`);
+    await adminApi.delete(`/api/admin/songs/${id}/`);
   } catch (error) {
     console.error('Error deleting song:', error);
     throw error;

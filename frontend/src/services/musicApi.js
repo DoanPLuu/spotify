@@ -36,27 +36,51 @@ export const getSongDetails = async (songId) => {
 };
 
 // Lấy URL stream bài hát
-export const getSongStreamUrl = (songId) => {
+export const getSongStreamUrl = async (songId) => {
   if (!songId) {
     console.error("songId không hợp lệ:", songId);
     return null;
   }
 
-  // Thêm timestamp để tránh cache
-  const timestamp = new Date().getTime();
-  return `${API_URL}/api/songs/${songId}/stream/?t=${timestamp}`;
+  try {
+    // Thêm timestamp để tránh cache
+    const timestamp = new Date().getTime();
+    const response = await fetchWithAuth(`${API_URL}/api/songs/${songId}/stream/?t=${timestamp}`);
+    
+    if (!response.ok) {
+      throw new Error('Không thể lấy URL stream');
+    }
+    
+    const data = await response.json();
+    return data.stream_url || null;
+  } catch (error) {
+    console.error("Lỗi khi lấy URL stream:", error);
+    return null;
+  }
 };
 
 // Lấy URL download bài hát
-export const getSongDownloadUrl = (songId) => {
+export const getSongDownloadUrl = async (songId) => {
   if (!songId) {
     console.error("songId không hợp lệ:", songId);
     return null;
   }
 
-  // Thêm timestamp để tránh cache
-  const timestamp = new Date().getTime();
-  return `${API_URL}/api/songs/${songId}/download/?t=${timestamp}`;
+  try {
+    // Thêm timestamp để tránh cache
+    const timestamp = new Date().getTime();
+    const response = await fetchWithAuth(`${API_URL}/api/songs/${songId}/download/?t=${timestamp}`);
+    
+    if (!response.ok) {
+      throw new Error('Không thể lấy URL download');
+    }
+    
+    const data = await response.json();
+    return data.download_url || null;
+  } catch (error) {
+    console.error("Lỗi khi lấy URL download:", error);
+    return null;
+  }
 };
 
 // Lấy danh sách playlist

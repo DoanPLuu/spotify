@@ -1,105 +1,94 @@
 // src/pages/admin/AdminLoginPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { adminLogin } from '../../services/adminApi';
+import { FaLock, FaUser, FaSpotify } from 'react-icons/fa';
 import '../../styles/admin.css';
-import { API_BASE_URL } from '../../config/constants';
 
 const AdminLoginPage = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [credentials, setCredentials] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Xóa tokens cũ khi vào trang login
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminRefreshToken');
-  }, []);
+    // Kiểm tra nếu đã đăng nhập thì chuyển hướng đến dashboard
+    const adminToken = localStorage.getItem('adminToken');
+    if (adminToken) {
+      navigate('/admin/dashboard');
+    }
+  }, [navigate]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setCredentials(prev => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
+    setError('');
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/accounts/admin/login/`, {  // Add /api prefix
-        username,
-        password
-      });
-
-      if (response.data.access) {
-        localStorage.setItem('adminToken', response.data.access);
-        if (response.data.refresh) {
-          localStorage.setItem('adminRefreshToken', response.data.refresh);
-        }
-        navigate('/admin/dashboard');
-      } else {
-        setError('Invalid response from server');
-      }
+      const response = await adminLogin(credentials.username, credentials.password);
+      localStorage.setItem('adminToken', response.access);
+      localStorage.setItem('adminRefreshToken', response.refresh);
+      navigate('/admin/dashboard');
     } catch (err) {
-      console.error('Login error:', err);
-      setError(err.response?.data?.detail || 'Invalid credentials. Please try again.');
+      setError('Invalid credentials. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="admin-auth-container">
-      <div className="admin-auth-card">
-        <div className="admin-auth-header">
-          <h1>Admin Portal</h1>
+    <div className="admin-login-page">
+      <div className="admin-login-container">
+        <div className="admin-login-logo">
+          <h1><FaSpotify style={{ marginRight: '10px' }} />Admin</h1>
         </div>
-        <form className="admin-auth-form" onSubmit={handleSubmit}>
+        <div className="admin-login-form">
+          <h2>Welcome Back</h2>
           {error && <div className="admin-login-error">{error}</div>}
-          <div className="admin-form-group">
-            <label htmlFor="admin-username">Username</label>
-            <input
-              id="admin-username"
-              type="text"
-              className="admin-input-field"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter admin username"
-              required
-            />
-          </div>
-          <div className="admin-form-group">
-            <label htmlFor="admin-password">Password</label>
-            <div className="admin-password-wrapper">
+          <form onSubmit={handleSubmit}>
+            <div className="admin-form-group">
+              <label htmlFor="username">
+                <FaUser /> Username
+              </label>
               <input
-                id="admin-password"
-                type="password"
-                className="admin-input-field"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter admin password"
+                type="text"
+                id="username"
+                name="username"
+                value={credentials.username}
+                onChange={handleChange}
                 required
+                placeholder="Enter your username"
+                autoComplete="username"
               />
-              <button type="button" className="admin-toggle-password">
-                <i className="fas fa-eye"></i>
-              </button>
             </div>
-          </div>
-          <button 
-            type="submit" 
-            className="admin-submit-btn"
-            disabled={loading}
-          >
-            {loading ? 'Logging in...' : 'Log In'}
-          </button>
-        </form>
-        <div className="admin-auth-footer">
-          <p>This portal is for administrators only.</p>
-          <p>
-            If you're a regular user, please{" "}
-            <a href="/login" className="admin-redirect-link">
-              click here
-            </a>{" "}
-            to login.
-          </p>
+            <div className="admin-form-group">
+              <label htmlFor="password">
+                <FaLock /> Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                value={credentials.password}
+                onChange={handleChange}
+                required
+                placeholder="Enter your password"
+                autoComplete="current-password"
+              />
+            </div>
+            <button 
+              type="submit" 
+              className="admin-btn admin-btn-primary admin-btn-block"
+              disabled={loading}
+            >
+              {loading ? 'Logging in...' : 'Login'}
+            </button>
+          </form>
         </div>
       </div>
     </div>

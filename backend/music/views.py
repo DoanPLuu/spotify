@@ -57,23 +57,47 @@ class SongStreamView(APIView):
             print(f"User {request.user.username} not premium, song ID={pk} is premium")
             return Response({"detail": "Premium content"}, status=status.HTTP_403_FORBIDDEN)
 
-        file_path = song.file_path.path
-        print(f"Checking file: {file_path}")
-        if not os.path.exists(file_path):
-            print(f"File not found at: {file_path}")
-            return Response({"detail": "File not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        try:
-            print(f"Streaming file: {file_path}")
-            return FileResponse(
-                open(file_path, 'rb'),
-                content_type='audio/mpeg',
-                as_attachment=False,
-                filename=f"{song.title}.mp3"
+        # Kiểm tra xem đang sử dụng S3 hay local storage
+        if settings.DEFAULT_FILE_STORAGE == 'storages.backends.s3boto3.S3Boto3Storage':
+            # Sử dụng S3
+            s3_client = boto3.client(
+                's3',
+                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                region_name=settings.AWS_S3_REGION_NAME
             )
-        except Exception as e:
-            print(f"Streaming error: {e}")
-            return Response({"detail": "Error while streaming file"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            try:
+                presigned_url = s3_client.generate_presigned_url(
+                    'get_object',
+                    Params={'Bucket': settings.AWS_STORAGE_BUCKET_NAME, 'Key': song.file_path.name},
+                    ExpiresIn=3600  # URL hết hạn sau 1 giờ
+                )
+                return Response({'stream_url': presigned_url}, status=status.HTTP_200_OK)
+            except Exception as e:
+                print(f"S3 error: {e}")
+                return Response({"detail": "Error while generating streaming URL"}, 
+                               status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            # Sử dụng local storage
+            file_path = song.file_path.path
+            print(f"Checking file: {file_path}")
+            if not os.path.exists(file_path):
+                print(f"File not found at: {file_path}")
+                return Response({"detail": "File not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            try:
+                print(f"Streaming file: {file_path}")
+                return FileResponse(
+                    open(file_path, 'rb'),
+                    content_type='audio/mpeg',
+                    as_attachment=False,
+                    filename=f"{song.title}.mp3"
+                )
+            except Exception as e:
+                print(f"Streaming error: {e}")
+                return Response({"detail": "Error while streaming file"}, 
+                               status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class SongVideoStreamView(APIView):
     permission_classes = [IsAuthenticated]
@@ -111,20 +135,49 @@ class SongDownloadView(APIView):
         if song.is_premium and not request.user.is_premium:
             return Response({"detail": "Premium content"}, status=status.HTTP_403_FORBIDDEN)
 
-        file_path = song.file_path.path
-        if not os.path.exists(file_path):
-            return Response({"detail": "File not found"}, status=status.HTTP_404_NOT_FOUND)
-
-        try:
-            return FileResponse(
-                open(file_path, 'rb'),
-                content_type='application/octet-stream',
-                as_attachment=True,
-                filename=f"{song.title}.mp3"
+        # Kiểm tra xem đang sử dụng S3 hay local storage
+        if settings.DEFAULT_FILE_STORAGE == 'storages.backends.s3boto3.S3Boto3Storage':
+            # Sử dụng S3
+            s3_client = boto3.client(
+                's3',
+                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+                region_name=settings.AWS_S3_REGION_NAME
             )
-        except Exception as e:
-            print(f"Download error: {e}")
-            return Response({"detail": "Error while downloading file"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+            try:
+                # Tạo URL có attachment disposition để trình duyệt tải xuống
+                presigned_url = s3_client.generate_presigned_url(
+                    'get_object',
+                    Params={
+                        'Bucket': settings.AWS_STORAGE_BUCKET_NAME, 
+                        'Key': song.file_path.name,
+                        'ResponseContentDisposition': f'attachment; filename="{song.title}.mp3"'
+                    },
+                    ExpiresIn=3600  # URL hết hạn sau 1 giờ
+                )
+                return Response({'download_url': presigned_url}, status=status.HTTP_200_OK)
+            except Exception as e:
+                print(f"S3 error: {e}")
+                return Response({"detail": "Error while generating download URL"}, 
+                               status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        else:
+            # Sử dụng local storage
+            file_path = song.file_path.path
+            if not os.path.exists(file_path):
+                return Response({"detail": "File not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            try:
+                return FileResponse(
+                    open(file_path, 'rb'),
+                    content_type='application/octet-stream',
+                    as_attachment=True,
+                    filename=f"{song.title}.mp3"
+                )
+            except Exception as e:
+                print(f"Download error: {e}")
+                return Response({"detail": "Error while downloading file"}, 
+                               status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class PlaylistListView(APIView):

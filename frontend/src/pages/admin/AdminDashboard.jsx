@@ -1,56 +1,37 @@
-// src/pages/admin/AdminDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { getAdminArtists, getAdminAlbums, getAdminSongs } from '../../services/adminApi';
-import '../../styles/admin.css'; // Thêm import CSS
+import '../../styles/admin.css';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
-    artistCount: 0,
-    albumCount: 0,
-    songCount: 0,
-    userCount: 0
+    artists: 0,
+    albums: 0,
+    songs: 0
   });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [recentSongs, setRecentSongs] = useState([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    // Set page title dynamically
-    const headerTitle = document.querySelector('.admin-page-title');
-    if (headerTitle) {
-      headerTitle.textContent = 'Dashboard';
-    }
-
-    // Function to fetch stats
     const fetchStats = async () => {
       try {
         setLoading(true);
         
-        // Use the adminApi service functions
-        const [artists, albums, songs] = await Promise.all([
-          getAdminArtists(),
-          getAdminAlbums(),
-          getAdminSongs()
-        ]);
-
-        // Set the stats
-        setStats({
-          artistCount: artists.length || 0,
-          albumCount: albums.length || 0,
-          songCount: songs.length || 0,
-          userCount: 0 // Would need a separate endpoint for this
-        });
-
-        // Get the 5 most recent songs
-        const sortedSongs = [...songs].sort((a, b) => 
-          new Date(b.created_at) - new Date(a.created_at)
-        ).slice(0, 5);
+        // Fetch data from API
+        const artists = await getAdminArtists();
+        const albums = await getAdminAlbums();
+        const songs = await getAdminSongs();
         
-        setRecentSongs(sortedSongs);
-      } catch (err) {
-        console.error('Error fetching dashboard data:', err);
+        // Update stats
+        setStats({
+          artists: artists.length,
+          albums: albums.length,
+          songs: songs.length
+        });
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching dashboard stats:', error);
         setError('Failed to load dashboard data');
-      } finally {
         setLoading(false);
       }
     };
@@ -58,50 +39,51 @@ const AdminDashboard = () => {
     fetchStats();
   }, []);
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
+  if (loading) {
+    return (
+      <div className="admin-content">
+        <h1>Dashboard</h1>
+        <div className="admin-loading">Loading dashboard data...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="admin-content">
+        <h1>Dashboard</h1>
+        <div className="admin-error">{error}</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="admin-dashboard">
-      <div className="admin-stats-grid">
+    <div className="admin-content">
+      <h1>Dashboard</h1>
+      
+      <div className="admin-stats-container">
         <div className="admin-stat-card">
-          <h3>Total Artists</h3>
-          <div className="admin-stat-value">{stats.artistCount}</div>
+          <h3>Artists</h3>
+          <div className="admin-stat-value">{stats.artists}</div>
+          <a href="/admin/artists" className="admin-stat-link">View All</a>
         </div>
+        
         <div className="admin-stat-card">
-          <h3>Total Albums</h3>
-          <div className="admin-stat-value">{stats.albumCount}</div>
+          <h3>Albums</h3>
+          <div className="admin-stat-value">{stats.albums}</div>
+          <a href="/admin/albums" className="admin-stat-link">View All</a>
         </div>
+        
         <div className="admin-stat-card">
-          <h3>Total Songs</h3>
-          <div className="admin-stat-value">{stats.songCount}</div>
+          <h3>Songs</h3>
+          <div className="admin-stat-value">{stats.songs}</div>
+          <a href="/admin/songs" className="admin-stat-link">View All</a>
         </div>
       </div>
-
-      <div className="admin-recent-songs">
-        <h2>Recent Songs</h2>
-        <div className="admin-table-container">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Artist</th>
-                <th>Album</th>
-                <th>Added</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentSongs.map((song) => (
-                <tr key={song.id}>
-                  <td>{song.title}</td>
-                  <td>{typeof song.artist === 'object' ? song.artist.name : song.artist}</td>
-                  <td>{song.album ? song.album.name : '-'}</td>
-                  <td>{new Date(song.created_at).toLocaleDateString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      
+      <div className="admin-recent-activity">
+        <h2>Recent Activity</h2>
+        <p>This is where recent activity would be displayed.</p>
       </div>
     </div>
   );

@@ -4,28 +4,24 @@ from accounts.models import User
 
 class Artist(models.Model):
     name = models.CharField(max_length=100)
-    bio = models.TextField(blank=True, null=True)
-    cover_image = models.CharField(max_length=255, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-
+    bio = models.TextField(blank=True)
+    image = models.ImageField(upload_to='artists/', blank=True, null=True)
+    
     class Meta:
         db_table = 'artists'
-
+    
     def __str__(self):
         return self.name
 
 class Album(models.Model):
     title = models.CharField(max_length=100)
     artist = models.ForeignKey(Artist, on_delete=models.CASCADE, related_name='albums')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='albums', null=True)
-    cover_image = models.CharField(max_length=255, blank=True, null=True)
     release_date = models.DateField()
-    created_at = models.DateTimeField(auto_now_add=True)
-    is_public = models.BooleanField(default=True)
-
+    cover_image = models.ImageField(upload_to='albums/', blank=True, null=True)
+    
     class Meta:
         db_table = 'albums'
-
+    
     def __str__(self):
         return self.title
 
@@ -36,9 +32,9 @@ class Song(models.Model):
     duration = models.IntegerField()
     file_path = models.FileField(upload_to='songs/')
     is_premium = models.BooleanField(default=False)
-    cover_image = models.CharField(max_length=255, blank=True, null=True)
+    cover_image = models.ImageField(upload_to='song_covers/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    video_file = models.FileField(upload_to='videos/', blank=True,  null=True)
+    video_file = models.FileField(upload_to='videos/', blank=True, null=True)
 
     class Meta:
         db_table = 'songs'
