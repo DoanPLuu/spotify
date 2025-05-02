@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "mutagen": "^1.0.0",
+    "storages": "^0.0.1"
+  }
+}
