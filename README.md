@@ -31,6 +31,7 @@ Dự án này là một bản sao của Spotify được phát triển như mộ
 - PostgreSQL cho cơ sở dữ liệu
 - JWT cho xác thực
 - Django Channels cho WebSocket
+- Zustand để tạo, sử dụng và quản lý các State
 - AWS S3 (tùy chọn) cho lưu trữ media
 
 ## Yêu cầu hệ thống
@@ -78,6 +79,12 @@ DB_HOST=localhost
 DB_PORT=5432
 EMAIL_HOST_USER=your-email@gmail.com
 EMAIL_HOST_PASSWORD=your-app-password
+
+# Nếu dùng AWS S3:
+AWS_ACCESS_KEY_ID=your-aws-access-key-id
+AWS_SECRET_ACCESS_KEY=your-aws-secret-access-key
+AWS_STORAGE_BUCKET_NAME=your-aws-bucket-name
+AWS_S3_REGION_NAME=your-aws-region-name
 ```
 
 5. Tạo database và chạy migrations:
