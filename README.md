@@ -81,6 +81,7 @@ EMAIL_HOST_USER=your-email@gmail.com
 EMAIL_HOST_PASSWORD=your-app-password
 
 # Nếu dùng AWS S3:
+USE_S3=True
 AWS_ACCESS_KEY_ID=your-aws-access-key-id
 AWS_SECRET_ACCESS_KEY=your-aws-secret-access-key
 AWS_STORAGE_BUCKET_NAME=your-aws-bucket-name
