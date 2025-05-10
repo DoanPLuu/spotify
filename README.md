@@ -163,10 +163,10 @@ Frontend kết nối với API backend thông qua các biến trong các file se
 
 ## Thành viên đóng góp
 
-| Mã số sinh viên | Họ và tên         | Email                         |
-|-----------------|-------------------|-------------------------------|
-| 3122410420      | Dương Minh Trí    | duongminhtri722004@gmail.com  |
-| 3122410188      | Vũ Đăng Khoa      | khoavu1831@gmail.com          |
-| 3122410227      | Đoàn Phong Lưu    | doanphongluu082@gmail.com     |
-| 3122410305      | Đinh Bá Phong     | dinhbaphong123@gmail.com      |
-| 3122410283      | Lê Thị Hồng Nhung | lethihongnhungntt@gmail.com   |
+| Mã số sinh viên | Họ và tên         | Email                         |Phân chia công việc               |
+|-----------------|-------------------|-------------------------------|----------------------------------|
+| 3122410420      | Dương Minh Trí    | duongminhtri722004@gmail.com  |Yêu thích,Admin                   |
+| 3122410188      | Vũ Đăng Khoa      | khoavu1831@gmail.com          |Bạn bè, Trò chuyện                |
+| 3122410227      | Đoàn Phong Lưu    | doanphongluu082@gmail.com     |Playlist, Album                   |
+| 3122410305      | Đinh Bá Phong     | dinhbaphong123@gmail.com      |Phát nhạc, Tìm kiếm               |
+| 3122410283      | Lê Thị Hồng Nhung | lethihongnhungntt@gmail.com   |Đăng nhập, Đăng kí, Viết báo cáo  |
