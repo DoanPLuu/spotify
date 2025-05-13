@@ -6,8 +6,6 @@ const API_URL = 'http://localhost:8000';
 // Admin login
 export const adminLogin = async (credentials) => {
   try {
-    console.log('Gửi request đăng nhập admin đến:', `${API_URL}/api/admin/login/`);
-    console.log('Dữ liệu đăng nhập:', credentials);
 
     const response = await fetch(`${API_URL}/api/admin/login/`, {
       method: 'POST',
