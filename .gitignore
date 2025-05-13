@@ -7,3 +7,4 @@ backend/songs
 
 backend/spotify_clone/.env
 backend/media/media/songs/
+backend/logs
