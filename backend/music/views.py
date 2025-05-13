@@ -543,43 +543,30 @@ class FavoriteSongToggleView(APIView):
 
     def post(self, request):
         # Thêm/xóa bài hát khỏi danh sách yêu thích
-        print("FavoriteSongToggleView - POST request received")
-        print("Request data:", request.data)
-        print("User:", request.user.username)
-
         song_id = request.data.get('song_id')
-        print("Song ID from request:", song_id)
 
         if not song_id:
-            print("Song ID is missing")
             return Response({"detail": "Song ID is required"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             song = Song.objects.get(pk=song_id)
-            print("Song found:", song.title)
 
             user = request.user
-            print("User favorite songs count:", user.favorite_songs.count())
 
             # Kiểm tra xem bài hát đã có trong danh sách yêu thích chưa
             is_favorite = song in user.favorite_songs.all()
-            print("Is song already in favorites:", is_favorite)
 
             if is_favorite:
                 # Nếu có, xóa khỏi danh sách yêu thích
-                print("Removing song from favorites")
                 user.favorite_songs.remove(song)
                 return Response({"detail": "Song removed from favorites", "is_favorite": False})
             else:
                 # Nếu chưa, thêm vào danh sách yêu thích
-                print("Adding song to favorites")
                 user.favorite_songs.add(song)
                 return Response({"detail": "Song added to favorites", "is_favorite": True})
         except Song.DoesNotExist:
-            print("Song not found with ID:", song_id)
             return Response({"detail": "Song not found"}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            print("Unexpected error:", str(e))
             return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class CheckFavoriteSongView(APIView):

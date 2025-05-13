@@ -105,9 +105,6 @@ class AdminAlbumListView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        # Debug: In ra toàn bộ request data và files
-        print("Request data:", request.data)
-        print("Request FILES:", request.FILES)
 
         # Xử lý file ảnh cover nếu có
         cover_file = request.FILES.get('cover_image')
@@ -121,9 +118,6 @@ class AdminAlbumListView(APIView):
             'cover_image': ''  # Mặc định là chuỗi rỗng, sẽ được cập nhật nếu có file
         }
 
-        # Debug: In ra artist_id và artist
-        print("Artist ID:", request.data.get('artist_id'))
-        print("Artist:", request.data.get('artist'))
 
         # Nếu có file ảnh cover
         if cover_file:
@@ -190,16 +184,10 @@ class AdminAlbumListView(APIView):
                 traceback.print_exc()
                 return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Debug: In ra dữ liệu trước khi tạo serializer
-        print("Data for serializer:", data)
-
         serializer = AdminAlbumSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-        # Nếu serializer không hợp lệ
-        print("Serializer errors:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class AdminAlbumDetailView(APIView):
@@ -213,14 +201,7 @@ class AdminAlbumDetailView(APIView):
 
     def put(self, request, pk):
         album = get_object_or_404(Album, pk=pk)
-
-        # Debug: In ra toàn bộ request data và files
-        print("Request data:", request.data)
-        print("Request FILES:", request.FILES)
-
-        # Xử lý file ảnh cover nếu có
         cover_file = request.FILES.get('cover_image')
-
         # Tạo dữ liệu cho serializer
         data = {
             'title': request.data.get('title', album.title),
@@ -229,10 +210,6 @@ class AdminAlbumDetailView(APIView):
             'is_public': request.data.get('is_public', 'true').lower() == 'true',
             'cover_image': album.cover_image or ''  # Đảm bảo không phải None
         }
-
-        # Debug: In ra artist_id và artist
-        print("Artist ID:", request.data.get('artist_id'))
-        print("Artist:", request.data.get('artist'))
 
         # Nếu có file ảnh cover
         if cover_file:
@@ -269,13 +246,11 @@ class AdminAlbumDetailView(APIView):
 
                     try:
                         # Upload file ảnh cover lên S3
-                        print(f"Uploading cover image to S3: {cover_s3_key}")
                         s3_client.upload_file(
                             cover_temp_path,
                             settings.AWS_STORAGE_BUCKET_NAME,
                             cover_s3_key
                         )
-                        print(f"Cover image uploaded successfully to S3: {cover_s3_key}")
 
                         # Cập nhật URL ảnh cover
                         cover_s3_url = f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{cover_s3_key}"
@@ -285,7 +260,6 @@ class AdminAlbumDetailView(APIView):
                         if os.path.exists(cover_temp_path):
                             os.remove(cover_temp_path)
                     except ClientError as e:
-                        print(f"Error uploading cover image to S3: {e}")
                         # Xóa file tạm
                         if os.path.exists(cover_temp_path):
                             os.remove(cover_temp_path)
@@ -299,16 +273,11 @@ class AdminAlbumDetailView(APIView):
                 traceback.print_exc()
                 return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Debug: In ra dữ liệu trước khi tạo serializer
-        print("Data for serializer:", data)
-
         serializer = AdminAlbumSerializer(album, data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-
         # Nếu serializer không hợp lệ
-        print("Serializer errors:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
@@ -327,10 +296,6 @@ class AdminSongListView(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        # Debug: In ra toàn bộ request data và files
-        print("Request data:", request.data)
-        print("Request FILES:", request.FILES)
-
         # Xử lý file MP3 được upload
         mp3_file = request.FILES.get('file')
         if not mp3_file:
@@ -369,8 +334,6 @@ class AdminSongListView(APIView):
                 'video': None
             }
 
-            # Debug: In ra dữ liệu trước khi tạo serializer
-            print("Data for serializer:", data)
 
             # Nếu sử dụng S3, upload file trực tiếp lên S3 bằng boto3
             if settings.USE_S3:
@@ -422,17 +385,14 @@ class AdminSongListView(APIView):
 
                 try:
                     # Upload file MP3 lên S3
-                    print(f"Uploading file to S3: {s3_key}")
                     s3_client.upload_file(
                         temp_file_path,
                         settings.AWS_STORAGE_BUCKET_NAME,
                         s3_key
                     )
-                    print(f"File uploaded successfully to S3: {s3_key}")
 
                     # Tạo URL để truy cập file
                     s3_url = f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{s3_key}"
-                    print(f"S3 URL: {s3_url}")
 
                     # Xóa file tạm
                     if os.path.exists(temp_file_path):
@@ -440,13 +400,11 @@ class AdminSongListView(APIView):
 
                     # Upload file ảnh cover lên S3 nếu có
                     if 'cover_image' in request.FILES and cover_s3_key:
-                        print(f"Uploading cover image to S3: {cover_s3_key}")
                         s3_client.upload_file(
                             cover_temp_path,
                             settings.AWS_STORAGE_BUCKET_NAME,
                             cover_s3_key
                         )
-                        print(f"Cover image uploaded successfully to S3: {cover_s3_key}")
 
                         # Cập nhật URL ảnh cover
                         cover_s3_url = f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{cover_s3_key}"
@@ -458,13 +416,11 @@ class AdminSongListView(APIView):
 
                     # Upload file video lên S3 nếu có
                     if 'video' in request.FILES and video_s3_key:
-                        print(f"Uploading video to S3: {video_s3_key}")
                         s3_client.upload_file(
                             video_temp_path,
                             settings.AWS_STORAGE_BUCKET_NAME,
                             video_s3_key
                         )
-                        print(f"Video uploaded successfully to S3: {video_s3_key}")
 
                         # Xóa file tạm
                         if os.path.exists(video_temp_path):
@@ -499,27 +455,23 @@ class AdminSongListView(APIView):
 
                         # Lấy bài hát vừa tạo
                         song = Song.objects.get(id=song_id)
-                        print(f"Song created successfully. File path: {s3_key}")
 
                         # Trả về thông tin bài hát
                         serializer = AdminSongSerializer(song)
                         return Response(serializer.data, status=status.HTTP_201_CREATED)
                     except Exception as e:
-                        print(f"Error creating song: {e}")
                         # Xóa file trên S3
                         try:
                             s3_client.delete_object(
                                 Bucket=settings.AWS_STORAGE_BUCKET_NAME,
                                 Key=s3_key
                             )
-                            print(f"Deleted file from S3 due to database error: {s3_key}")
                         except Exception as e2:
                             print(f"Error deleting file from S3: {e2}")
 
                         return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
                 except ClientError as e:
-                    print(f"Error uploading file to S3: {e}")
                     # Xóa file tạm
                     if os.path.exists(temp_file_path):
                         os.remove(temp_file_path)
@@ -535,18 +487,15 @@ class AdminSongListView(APIView):
                 serializer = AdminSongSerializer(data=data)
                 if serializer.is_valid():
                     song = serializer.save()
-                    print(f"Song created successfully. File path: {song.file_path.path}")
                     return Response(serializer.data, status=status.HTTP_201_CREATED)
 
                 # Nếu serializer không hợp lệ
-                print("Serializer errors:", serializer.errors)
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             # Xóa file tạm nếu có lỗi
             if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
                 os.remove(temp_file_path)
-            print("Exception:", str(e))
             import traceback
             traceback.print_exc()
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -647,13 +596,11 @@ class AdminSongDetailView(APIView):
 
                     try:
                         # Upload file MP3 lên S3
-                        print(f"Uploading file to S3: {s3_key}")
                         s3_client.upload_file(
                             temp_file_path,
                             settings.AWS_STORAGE_BUCKET_NAME,
                             s3_key
                         )
-                        print(f"File uploaded successfully to S3: {s3_key}")
 
                         # Tạo URL để truy cập file
                         s3_url = f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{s3_key}"
@@ -665,13 +612,11 @@ class AdminSongDetailView(APIView):
 
                         # Upload file ảnh cover lên S3 nếu có
                         if cover_file and cover_s3_key:
-                            print(f"Uploading cover image to S3: {cover_s3_key}")
                             s3_client.upload_file(
                                 cover_temp_path,
                                 settings.AWS_STORAGE_BUCKET_NAME,
                                 cover_s3_key
                             )
-                            print(f"Cover image uploaded successfully to S3: {cover_s3_key}")
 
                             # Cập nhật URL ảnh cover
                             cover_s3_url = f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{cover_s3_key}"
@@ -683,13 +628,11 @@ class AdminSongDetailView(APIView):
 
                         # Upload file video lên S3 nếu có
                         if video_file and video_s3_key:
-                            print(f"Uploading video to S3: {video_s3_key}")
                             s3_client.upload_file(
                                 video_temp_path,
                                 settings.AWS_STORAGE_BUCKET_NAME,
                                 video_s3_key
                             )
-                            print(f"Video uploaded successfully to S3: {video_s3_key}")
 
                             # Xóa file tạm
                             if os.path.exists(video_temp_path):
@@ -703,7 +646,6 @@ class AdminSongDetailView(APIView):
                                     Bucket=settings.AWS_STORAGE_BUCKET_NAME,
                                     Key=old_key
                                 )
-                                print(f"Deleted old file from S3: {old_key}")
                             except Exception as e:
                                 print(f"Error deleting old file from S3: {e}")
 
@@ -735,7 +677,6 @@ class AdminSongDetailView(APIView):
 
                             # Lấy bài hát vừa cập nhật
                             updated_song = Song.objects.get(id=song.id)
-                            print(f"Song updated successfully. File path: {s3_key}")
 
                             # Trả về thông tin bài hát
                             serializer = AdminSongSerializer(updated_song)
@@ -771,18 +712,15 @@ class AdminSongDetailView(APIView):
                     serializer = AdminSongSerializer(song, data=data)
                     if serializer.is_valid():
                         updated_song = serializer.save()
-                        print(f"Song updated successfully. File path: {updated_song.file_path.path}")
                         return Response(serializer.data)
 
                     # Nếu serializer không hợp lệ
-                    print("Serializer errors:", serializer.errors)
                     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
             except Exception as e:
                 # Xóa file tạm nếu có lỗi
                 if 'temp_file_path' in locals() and os.path.exists(temp_file_path):
                     os.remove(temp_file_path)
-                print("Exception:", str(e))
                 import traceback
                 traceback.print_exc()
                 return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -795,7 +733,6 @@ class AdminSongDetailView(APIView):
                 'album': request.data.get('album') if request.data.get('album') else song.album_id,
                 'is_premium': request.data.get('is_premium', 'false').lower() == 'true',
                 'cover_image': request.data.get('cover_image', song.cover_image or '')
-                # Không đưa trường video vào đây để tránh lỗi serializer
             }
 
             # Xử lý file ảnh cover nếu có
@@ -832,13 +769,11 @@ class AdminSongDetailView(APIView):
 
                     try:
                         # Upload file ảnh cover lên S3
-                        print(f"Uploading cover image to S3: {cover_s3_key}")
                         s3_client.upload_file(
                             cover_temp_path,
                             settings.AWS_STORAGE_BUCKET_NAME,
                             cover_s3_key
                         )
-                        print(f"Cover image uploaded successfully to S3: {cover_s3_key}")
 
                         # Cập nhật URL ảnh cover
                         cover_s3_url = f"https://{settings.AWS_S3_CUSTOM_DOMAIN}/{cover_s3_key}"
@@ -848,7 +783,6 @@ class AdminSongDetailView(APIView):
                         if os.path.exists(cover_temp_path):
                             os.remove(cover_temp_path)
                     except ClientError as e:
-                        print(f"Error uploading cover image to S3: {e}")
                         # Xóa file tạm
                         if os.path.exists(cover_temp_path):
                             os.remove(cover_temp_path)
@@ -893,13 +827,11 @@ class AdminSongDetailView(APIView):
 
                     try:
                         # Upload file video lên S3
-                        print(f"Uploading video to S3: {video_s3_key}")
                         s3_client.upload_file(
                             video_temp_path,
                             settings.AWS_STORAGE_BUCKET_NAME,
                             video_s3_key
                         )
-                        print(f"Video uploaded successfully to S3: {video_s3_key}")
 
                         # Xóa file tạm
                         if os.path.exists(video_temp_path):
@@ -909,7 +841,6 @@ class AdminSongDetailView(APIView):
                         video_updated = True
                         video_s3_key_to_save = video_s3_key
                     except ClientError as e:
-                        print(f"Error uploading video to S3: {e}")
                         # Xóa file tạm
                         if os.path.exists(video_temp_path):
                             os.remove(video_temp_path)
@@ -920,10 +851,6 @@ class AdminSongDetailView(APIView):
                     video_updated = True
                     video_s3_key_to_save = video_file.name
 
-            # Debug
-            print("Partial update data:", data)
-            print("Video file present:", bool(video_file))
-            print("Current song video:", song.video)
 
             # Sử dụng partial=True để chỉ cập nhật các trường được cung cấp
             serializer = AdminSongSerializer(song, data=data, partial=True)
@@ -942,17 +869,13 @@ class AdminSongDetailView(APIView):
                             """,
                             [video_s3_key_to_save, song.id]
                         )
-                    print(f"Video updated directly in database: {video_s3_key_to_save}")
 
                 # Lấy bài hát mới nhất từ database để đảm bảo dữ liệu mới nhất
                 refreshed_song = Song.objects.get(id=song.id)
-                print("Updated song video:", refreshed_song.video)
 
                 # Sử dụng refreshed_song để trả về dữ liệu mới nhất
                 serializer = AdminSongSerializer(refreshed_song)
                 return Response(serializer.data)
-
-            print("Serializer errors:", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
@@ -981,7 +904,6 @@ class AdminSongDetailView(APIView):
                             Bucket=settings.AWS_STORAGE_BUCKET_NAME,
                             Key=s3_key
                         )
-                        print(f"Deleted file from S3: {s3_key}")
                     except ClientError as e:
                         print(f"Error deleting file from S3: {e}")
                 else:
@@ -992,7 +914,6 @@ class AdminSongDetailView(APIView):
                             os.remove(file_path)
         except Exception as e:
             print(f"Lỗi khi xóa file: {e}")
-            # Tiếp tục xóa bài hát ngay cả khi không thể xóa file
 
         song.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

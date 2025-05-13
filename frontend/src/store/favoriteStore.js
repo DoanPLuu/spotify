@@ -2,8 +2,6 @@ import { create } from 'zustand';
 import { checkFavoriteSong, toggleFavoriteSong } from '../services/musicApi';
 
 const useFavoriteStore = create((set, get) => ({
-  // Map lưu trữ trạng thái yêu thích của các bài hát
-  // Key: songId, Value: boolean (true nếu là yêu thích)
   favoriteSongs: new Map(),
   
   // Kiểm tra trạng thái yêu thích của một bài hát

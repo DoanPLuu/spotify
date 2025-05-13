@@ -414,16 +414,10 @@ export const getFavoriteSongs = async () => {
 // Thêm/xóa bài hát khỏi danh sách yêu thích
 export const toggleFavoriteSong = async (songId) => {
   try {
-    console.log('Gọi toggleFavoriteSong với songId:', songId, 'type:', typeof songId);
-
-    // Đảm bảo songId là số nguyên
     const id = Number(songId);
     if (isNaN(id)) {
-      console.error('songId không phải là số hợp lệ:', songId);
       throw new Error('ID bài hát không hợp lệ');
     }
-
-    console.log('Đã chuyển đổi songId thành số:', id);
 
     const response = await fetchWithAuth(`${API_URL}/api/favorites/toggle/`, {
       method: 'POST',
@@ -433,19 +427,14 @@ export const toggleFavoriteSong = async (songId) => {
       body: JSON.stringify({ song_id: id }),
     });
 
-    console.log('Response status:', response.status);
-
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Error response:', errorText);
       throw new Error('Không thể thêm/xóa bài hát khỏi danh sách yêu thích');
     }
 
     const result = await response.json();
-    console.log('Toggle favorite result:', result);
     return result;
   } catch (error) {
-    console.error('Lỗi khi thêm/xóa bài hát khỏi danh sách yêu thích:', error);
     throw error;
   }
 };
@@ -453,32 +442,21 @@ export const toggleFavoriteSong = async (songId) => {
 // Kiểm tra xem bài hát có trong danh sách yêu thích không
 export const checkFavoriteSong = async (songId) => {
   try {
-    console.log('Gọi checkFavoriteSong với songId:', songId, 'type:', typeof songId);
-
-    // Đảm bảo songId là số nguyên
     const id = Number(songId);
     if (isNaN(id)) {
-      console.error('songId không phải là số hợp lệ:', songId);
       return { is_favorite: false };
     }
-
     const url = `${API_URL}/api/favorites/check/${id}/`;
-    console.log('URL kiểm tra yêu thích:', url);
-
     const response = await fetchWithAuth(url);
-    console.log('Response status:', response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Error response:', errorText);
       throw new Error('Không thể kiểm tra trạng thái yêu thích');
     }
 
     const result = await response.json();
-    console.log('Check favorite result:', result);
     return result;
   } catch (error) {
-    console.error('Lỗi khi kiểm tra trạng thái yêu thích:', error);
     return { is_favorite: false };
   }
 };
