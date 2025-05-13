@@ -165,7 +165,7 @@ Frontend kết nối với API backend thông qua các biến trong các file se
 
 | Mã số sinh viên | Họ và tên         | Email                         |Phân chia công việc               |Khối lượng công việc             |
 |-----------------|-------------------|-------------------------------|----------------------------------|---------------------------------|
-| 3122410420      | Dương Minh Trí    | duongminhtri722004@gmail.com  |Yêu thích,Admin                   |20%                              |
+| 3122410420      | Dương Minh Trí    | duongminhtri722004@gmail.com  |Yêu thích, Admin                  |20%                              |
 | 3122410188      | Vũ Đăng Khoa      | khoavu1831@gmail.com          |Bạn bè, Trò chuyện                |20%                              |
 | 3122410227      | Đoàn Phong Lưu    | doanphongluu082@gmail.com     |Playlist, Album                   |20%                              |
 | 3122410305      | Đinh Bá Phong     | dinhbaphong123@gmail.com      |Phát nhạc, Tìm kiếm               |20%                              |
