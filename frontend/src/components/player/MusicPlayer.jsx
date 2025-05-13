@@ -336,7 +336,9 @@ const MusicPlayer = () => {
           />
           <div className="song-details">
             <div className="song-title">{currentSong?.title || "No song playing"}</div>
-            <div className="song-artist">{currentSong?.artist?.name || "Unknown artist"}</div>
+            <div className="song-artist">
+              {typeof currentSong?.artist === 'object' ? currentSong.artist.name : currentSong?.artist || "Unknown artist"}
+            </div>
           </div>
         </div>
 
